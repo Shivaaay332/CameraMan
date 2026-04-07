@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CameraMan">
+    
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3686/3686930.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3686/3686930.png">
+
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22CameraMan%20Pro%22%2C%22short_name%22%3A%22CameraMan%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F3686%2F3686930.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
+
+    <title>CameraMan Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #ffffff;
+            --bg-glass: rgba(20, 20, 20, 0.45);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --neon-pink: #ff2a85;
+            --neon-blue: #00f0ff;
+            --neon-yellow: #ffea00;
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100vw;
+            height: 100vh;
+            background-color: #050505;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+            color: var(--primary);
+            overscroll-behavior-y: none; /* Prevents pull-to-refresh on mobile */
+        }
+
+        /* --- Camera & Canvases --- */
+        #app-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #video-feed {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #overlay-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #sticker-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 15;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .sticker {
+            position: absolute;
+            font-size: 55px;
+            pointer-events: auto;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+            filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.6));
+            transition: filter 0.2s;
+        }
+        
+        .sticker:active {
+            filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.8));
+        }
+
+        /* --- Grid Overlay --- */
+        #grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.25) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.25) 1px, transparent 1px);
+            background-size: 33.33% 33.33%;
+        }
+
+        /* --- UI Elements (Premium Glassmorphism) --- */
+        .glass {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.25rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.85);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .icon-btn.active {
+            color: var(--neon-yellow);
+            border-color: rgba(255, 234, 0, 0.4);
+            box-shadow: 0 0 15px rgba(255, 234, 0, 0.3);
+            background: rgba(255, 234, 0, 0.1);
+        }
+
+        /* Top Bar */
+        #top-bar {
+            position: absolute;
+            top: var(--safe-top);
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+            padding-top: 10px;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 1.5px;
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .top-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Bottom Bar */
+        #bottom-bar {
+            position: absolute;
+            bottom: calc(var(--safe-bottom) + 15px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            z-index: 20;
+            padding: 12px 25px;
+            border-radius: 40px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        #capture-btn {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: transparent;
+            border: 4px solid #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        #capture-btn .inner-circle {
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #capture-btn:active .inner-circle {
+            transform: scale(0.85);
+            background: #e0e0e0;
+        }
+        
+        #capture-btn.recording {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 42, 133, 0.4);
+        }
+        
+        #capture-btn.recording .inner-circle {
+            background: var(--neon-pink);
+            border-radius: 12px;
+            transform: scale(0.5);
+            animation: pulse-recording 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-recording {
+            0% { box-shadow: 0 0 10px var(--neon-pink); }
+            100% { box-shadow: 0 0 25px var(--neon-pink), 0 0 40px rgba(255, 42, 133, 0.5); }
+        }
+
+        /* Side Panels */
+        .side-panel {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 20;
+            padding: 12px;
+            border-radius: 25px;
+        }
+
+        /* Drawers */
+        .drawer {
+            position: absolute;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            background: var(--bg-glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-top: 1px solid var(--border-glass);
+            z-index: 30;
+            transition: bottom 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            padding: 25px 20px calc(var(--safe-bottom) + 20px);
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+        }
+
+        .drawer.open {
+            bottom: 0;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .drawer-header h3 {
+            font-weight: 600;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+        }
+
+        .emoji-grid, .filter-grid, .face-overlay-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+            gap: 15px;
+            justify-items: center;
+        }
+
+        .emoji-item, .overlay-item {
+            font-size: 2.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255,255,255,0.05);
+            width: 65px;
+            height: 65px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .emoji-item:active, .overlay-item:active {
+            transform: scale(0.9);
+        }
+
+        .emoji-item:hover, .overlay-item:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .overlay-item.active {
+            border: 2px solid var(--neon-blue);
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0,255,255,0.2);
+        }
+
+        /* Image Filters List */
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .filter-preview {
+            width: 65px;
+            height: 65px;
+            border-radius: 20px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><rect width="60" height="60" fill="%23222"/><circle cx="30" cy="30" r="15" fill="%23fff"/></svg>') center/cover;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .filter-item.active .filter-preview {
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 15px rgba(255, 234, 0, 0.4);
+            transform: scale(1.05);
+        }
+
+        .filter-name {
+            font-size: 0.75rem;
+            font-weight: 400;
+            text-align: center;
+            letter-spacing: 0.5px;
+            color: #ddd;
+        }
+
+        .filter-item.active .filter-name {
+            color: var(--neon-yellow);
+            font-weight: 600;
+        }
+
+        /* Settings Toggles */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 1.05rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 54px;
+            height: 30px;
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.on {
+            background-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0,255,255,0.3);
+        }
+
+        .toggle-switch.on::after {
+            transform: translateX(24px);
+        }
+
+        /* Flash & Loader */
+        #flash-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .flash-anim {
+            animation: flash-premium 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        @keyframes flash-premium {
+            0% { opacity: 1; background: #fff; }
+            50% { opacity: 0.5; background: rgba(255,255,255,0.8); }
+            100% { opacity: 0; background: transparent; }
+        }
+
+        #loader {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            transition: opacity 0.6s ease-in-out, visibility 0.6s;
+        }
+
+        .spinner {
+            width: 60px; height: 60px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--neon-pink);
+            border-right-color: var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin-bottom: 25px;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Timer UI */
+        #timer-display {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px var(--neon-blue);
+            z-index: 50;
+            display: none;
+        }
+        
+        /* Zoom Slider */
+        #zoom-container {
+            position: absolute;
+            right: 85px;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            z-index: 20;
+            background: var(--bg-glass);
+            padding: 20px 10px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border-glass);
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 160px;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+            transform: rotate(-90deg);
+            margin: 75px 0;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255,255,255,0.6);
+            border: 2px solid var(--neon-blue);
+        }
+
+        /* Toast Notification (Premium Alert Replacement) */
+        #toast-container {
+            position: absolute;
+            top: calc(var(--safe-top) + 70px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .side-panel { right: 15px; }
+            #bottom-bar { width: 92%; gap: 15px; padding: 12px; bottom: calc(var(--safe-bottom) + 10px); }
+            #capture-btn { width: 70px; height: 70px; }
+            #capture-btn .inner-circle { width: 54px; height: 54px; }
+            #zoom-container { right: 75px; height: 180px; }
+            input[type="range"] { width: 120px; margin: 55px 0; }
+        }
+        
+        /* Hidden canvas for recording */
+        #record-canvas { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <video id="video-feed" autoplay playsinline muted></video>
+    
+    <canvas id="overlay-canvas"></canvas>
+    <div id="sticker-container"></div>
+    <div id="grid-overlay"></div>
+    <div id="timer-display">3</div>
+    <div id="flash-overlay"></div>
+    
+    <div id="toast-container"></div>
+    
+    <canvas id="record-canvas"></canvas>
+
+    <div id="top-bar">
+        <div class="logo">CameraMan</div>
+        <div class="top-controls">
+            <div class="icon-btn" id="btn-grid"><i class="fas fa-border-all"></i></div>
+            <div class="icon-btn" id="btn-timer"><i class="fas fa-clock"></i></div>
+            <div class="icon-btn" id="btn-settings"><i class="fas fa-cog"></i></div>
+        </div>
+    </div>
+
+    <div id="zoom-container" class="glass">
+        <i class="fas fa-plus" style="font-size: 12px; color: #ddd;"></i>
+        <input type="range" id="zoom-slider" min="1" max="3" step="0.1" value="1">
+        <i class="fas fa-minus" style="font-size: 12px; color: #ddd;"></i>
+    </div>
+
+    <div class="side-panel glass">
+        <div class="icon-btn" id="btn-image-filters"><i class="fas fa-magic"></i></div>
+        <div class="icon-btn" id="btn-face-filters"><i class="fas fa-masks-theater"></i></div>
+    </div>
+
+    <div id="bottom-bar" class="glass">
+        <div class="icon-btn" id="btn-gallery" title="Gallery"><i class="fas fa-images"></i></div>
+        <div class="icon-btn" id="btn-stickers" title="Stickers"><i class="fas fa-smile"></i></div>
+        
+        <div id="capture-btn">
+            <div class="inner-circle"></div>
+        </div>
+        
+        <div class="icon-btn" id="btn-flip" title="Flip Camera"><i class="fas fa-sync-alt"></i></div>
+        <div class="icon-btn" id="btn-fullscreen" title="Fullscreen"><i class="fas fa-expand"></i></div>
+    </div>
+
+    <div class="drawer" id="drawer-settings">
+        <div class="drawer-header">
+            <h3>Settings</h3>
+            <div class="icon-btn close-drawer"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="setting-row">
+            <span>Sound Effects</span>
+            <div class="toggle-switch on" id="toggle-sound"></div>
+        </div>
+        <div class="setting-row">
+            <span>Smart Face Tracking</span>
+            <div class="toggle-switch on" id="toggle-tracking"></div>
+        </div>
+        <div class="setting-row">
+            <span>Dark/Light UI Theme</span>
+            <div class="toggle-switch on" id="toggle-theme"></div>
+        </div>
+    </div>
+
+    <div class="drawer" id="drawer-stickers">
+        <div class="drawer-header">
+            <h3>Add Stickers</h3>
+            <div class="icon-btn close-drawer"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="emoji-grid" id="emoji-list"></div>
+    </div>
+
+    <div class="drawer" id="drawer-face-filters">
+        <div class="drawer-header">
+            <h3>Face Overlays</h3>
+            <div class="icon-btn close-drawer"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="face-overlay-grid">
+            <div class="overlay-item active" data-overlay="none"><i class="fas fa-ban"></i></div>
+            <div class="overlay-item" data-overlay="sunglasses">😎</div>
+            <div class="overlay-item" data-overlay="hat">🎩</div>
+            <div class="overlay-item" data-overlay="dog">🐶</div>
+            <div class="overlay-item" data-overlay="crown">👑</div>
+            <div class="overlay-item" data-overlay="mask">😷</div>
+            <div class="overlay-item" data-overlay="mustache">👨</div>
+        </div>
+    </div>
+
+    <div class="drawer" id="drawer-image-filters">
+        <div class="drawer-header">
+            <h3>Color Filters</h3>
+            <div class="icon-btn close-drawer"><i class="fas fa-times"></i></div>
+        </div>
+        <div class="filter-grid" id="filter-list"></div>
+    </div>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <h2 id="loader-text" style="font-weight: 600; letter-spacing: 1px;">Initializing...</h2>
+        <p style="margin-top: 10px; font-size: 0.85rem; color: #aaa; font-weight: 300;" id="loader-subtext">Setting up camera & AI</p>
+    </div>
+</div>
+
+<script>
+/**
+ * CameraMan Pro - Enhanced Main Application Logic
+ * Original Logic kept 100% intact, upgraded with Toast Notifications and premium UI flows.
+ */
+
+// --- State ---
+const state = {
+    facingMode: 'user',
+    currentImageFilter: 'none',
+    currentFaceOverlay: 'none',
+    isRecording: false,
+    timerValue: 0, 
+    isSoundOn: true,
+    isTrackingOn: true,
+    isDarkTheme: true,
+    zoom: 1,
+    modelsLoaded: false,
+    modelsFailed: false,
+    stream: null
+};
+
+// --- Custom Toast Notification Function (Replaces ugly Alerts) ---
+function showToast(message, duration = 3000) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fas fa-info-circle" style="margin-right: 8px; color: var(--neon-blue);"></i> ${message}`;
+    
+    container.appendChild(toast);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400); // Wait for transition
+    }, duration);
+}
+
+// --- DOM Elements ---
+const video = document.getElementById('video-feed');
+const overlayCanvas = document.getElementById('overlay-canvas');
+const recordCanvas = document.getElementById('record-canvas');
+const ctx = overlayCanvas.getContext('2d');
+const recCtx = recordCanvas.getContext('2d');
+const stickerContainer = document.getElementById('sticker-container');
+const loader = document.getElementById('loader');
+const loaderText = document.getElementById('loader-text');
+const captureBtn = document.getElementById('capture-btn');
+const flashOverlay = document.getElementById('flash-overlay');
+const timerDisplay = document.getElementById('timer-display');
+
+// Audio setup
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    if (!state.isSoundOn) return;
+    try {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        if (type === 'shutter') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'beep') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+    } catch(e) { console.warn("Audio error:", e); }
+}
+
+function removeLoader() {
+    loader.style.opacity = '0';
+    setTimeout(() => {
+        loader.style.visibility = 'hidden';
+        loader.style.display = 'none';
+    }, 600);
+}
+
+async function init() {
+    try {
+        loaderText.innerText = "Starting Camera...";
+        await startCamera();
+        
+        setupCanvases();
+        window.addEventListener('resize', setupCanvases);
+        
+        removeLoader();
+        requestAnimationFrame(processVideoFrame);
+        loadFaceModelsInBackground();
+        
+    } catch (err) {
+        console.error(err);
+        loaderText.innerText = "Camera Access Denied";
+        document.querySelector('.spinner').style.display = 'none';
+        document.getElementById('loader-subtext').innerText = "Please allow permissions in browser settings.";
+        setTimeout(removeLoader, 4000);
+        showToast("Camera access required for core features.", 5000);
+    }
+}
+
+async function startCamera() {
+    if (state.stream) {
+        state.stream.getTracks().forEach(track => track.stop());
+    }
+    
+    const constraints = {
+        video: {
+            facingMode: state.facingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        },
+        audio: false 
+    };
+
+    state.stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = state.stream;
+    
+    const track = state.stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities();
+    const zoomSlider = document.getElementById('zoom-slider');
+    
+    if (capabilities.zoom) {
+        zoomSlider.min = capabilities.zoom.min;
+        zoomSlider.max = capabilities.zoom.max;
+        zoomSlider.step = capabilities.zoom.step;
+        zoomSlider.value = capabilities.zoom.min;
+        zoomSlider.addEventListener('input', (e) => {
+            track.applyConstraints({advanced: [{zoom: parseFloat(e.target.value)}]});
+        });
+    } else {
+        zoomSlider.addEventListener('input', (e) => {
+            state.zoom = parseFloat(e.target.value);
+            video.style.transform = `scaleX(${state.facingMode==='user'?-1:1}) scale(${state.zoom})`;
+        });
+    }
+
+    return new Promise((resolve) => {
+        video.onloadedmetadata = () => {
+            video.play();
+            resolve();
+        };
+    });
+}
+
+async function loadFaceModelsInBackground() {
+    try {
+        console.log("Loading AI face models asynchronously...");
+        if (typeof faceapi === 'undefined') throw new Error("face-api library not loaded.");
+
+        const MODEL_URL = 'https://cdn.jsdelivr.net/gh/vladmandic/face-api/model/';
+        
+        const loadPromise = Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+        ]);
+
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('AI Model loading timed out')), 5000)
+        );
+
+        await Promise.race([loadPromise, timeoutPromise]);
+        
+        console.log("AI models loaded successfully.");
+        state.modelsLoaded = true;
+        showToast("AI Face Filters are ready! ✨");
+    } catch (err) {
+        console.error("Face models failed:", err);
+        state.modelsLoaded = false;
+        state.modelsFailed = true;
+        const faceBtn = document.getElementById('btn-face-filters');
+        faceBtn.style.opacity = '0.5';
+    }
+}
+
+function setupCanvases() {
+    overlayCanvas.width = video.clientWidth;
+    overlayCanvas.height = video.clientHeight;
+    recordCanvas.width = video.clientWidth;
+    recordCanvas.height = video.clientHeight;
+}
+
+async function processVideoFrame() {
+    if (video.paused || video.ended) {
+        requestAnimationFrame(processVideoFrame);
+        return;
+    }
+
+    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+    if (state.modelsLoaded && state.isTrackingOn && state.currentFaceOverlay !== 'none') {
+        try {
+            const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+            const detections = await faceapi.detectAllFaces(video, options).withFaceLandmarks();
+            
+            const displaySize = { width: overlayCanvas.width, height: overlayCanvas.height };
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+
+            resizedDetections.forEach(detection => {
+                const landmarks = detection.landmarks;
+                const jawOutline = landmarks.getJawOutline();
+                const nose = landmarks.getNose();
+                const leftEye = landmarks.getLeftEye();
+                const rightEye = landmarks.getRightEye();
+
+                const faceWidth = jawOutline[16].x - jawOutline[0].x;
+                const eyeCenterX = (leftEye[0].x + rightEye[3].x) / 2;
+                const eyeCenterY = (leftEye[0].y + rightEye[3].y) / 2;
+                const angle = Math.atan2(rightEye[3].y - leftEye[0].y, rightEye[3].x - leftEye[0].x);
+
+                ctx.save();
+                
+                if (state.facingMode === 'user') {
+                    ctx.translate(overlayCanvas.width, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                let x = eyeCenterX;
+                let y = eyeCenterY;
+                if (state.facingMode === 'user') {
+                    x = overlayCanvas.width - eyeCenterX;
+                }
+
+                ctx.translate(x, y);
+                ctx.rotate(state.facingMode === 'user' ? -angle : angle);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                if (state.currentFaceOverlay === 'sunglasses') {
+                    ctx.font = `${faceWidth * 0.9}px Arial`;
+                    ctx.fillText('😎', 0, 0);
+                } else if (state.currentFaceOverlay === 'hat') {
+                    ctx.font = `${faceWidth * 1.2}px Arial`;
+                    ctx.fillText('🎩', 0, -faceWidth * 0.8);
+                } else if (state.currentFaceOverlay === 'dog') {
+                    ctx.font = `${faceWidth * 1.4}px Arial`;
+                    ctx.fillText('🐶', 0, -faceWidth * 0.2);
+                } else if (state.currentFaceOverlay === 'crown') {
+                    ctx.font = `${faceWidth * 1}px Arial`;
+                    ctx.fillText('👑', 0, -faceWidth * 0.7);
+                } else if (state.currentFaceOverlay === 'mask') {
+                    ctx.font = `${faceWidth * 0.8}px Arial`;
+                    ctx.fillText('😷', 0, faceWidth * 0.3);
+                } else if (state.currentFaceOverlay === 'mustache') {
+                    ctx.font = `${faceWidth * 0.6}px Arial`;
+                    let nx = nose[3].x, ny = nose[3].y;
+                    if(state.facingMode === 'user') nx = overlayCanvas.width - nx;
+                    ctx.restore(); 
+                    ctx.save();
+                    if (state.facingMode === 'user') { ctx.translate(overlayCanvas.width, 0); ctx.scale(-1, 1); nx = nose[3].x; }
+                    ctx.translate(nx, ny + faceWidth*0.1);
+                    ctx.rotate(state.facingMode === 'user' ? -angle : angle);
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('👨', 0, 0);
+                }
+
+                ctx.restore();
+            });
+        } catch (e) {
+            console.error("Face detection error:", e);
+        }
+    }
+
+    if (state.isRecording) drawFrameToRecordCanvas();
+    requestAnimationFrame(processVideoFrame);
+}
+
+// --- Image Filters ---
+const imageFilters = {
+    'none': 'none',
+    'grayscale': 'grayscale(100%)',
+    'sepia': 'sepia(100%)',
+    'vintage': 'sepia(50%) contrast(120%) brightness(90%)',
+    'neon': 'saturate(200%) hue-rotate(45deg) contrast(150%)',
+    'blur': 'blur(5px)',
+    'bright': 'brightness(130%) contrast(110%)'
+};
+
+function applyImageFilter(filterName) {
+    state.currentImageFilter = filterName;
+    video.style.filter = imageFilters[filterName];
+}
+
+const filterGrid = document.getElementById('filter-list');
+Object.keys(imageFilters).forEach(key => {
+    const div = document.createElement('div');
+    div.className = `filter-item ${key==='none'?'active':''}`;
+    div.innerHTML = `<div class="filter-preview" style="filter: ${imageFilters[key]}"></div><span class="filter-name">${key.toUpperCase()}</span>`;
+    div.onclick = () => {
+        document.querySelectorAll('.filter-item').forEach(el => el.classList.remove('active'));
+        div.classList.add('active');
+        applyImageFilter(key);
+    };
+    filterGrid.appendChild(div);
+});
+
+document.querySelectorAll('.overlay-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+        document.querySelectorAll('.overlay-item').forEach(el => el.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        state.currentFaceOverlay = e.currentTarget.dataset.overlay;
+    });
+});
+
+// --- Stickers UI & Logic ---
+const emojis = ['🌟','❤️','🔥','✨','🎉','😂','🍕','👽','👻','💯','✌️','🚀','🌈','🌸','⚡'];
+const emojiList = document.getElementById('emoji-list');
+emojis.forEach(em => {
+    const div = document.createElement('div');
+    div.className = 'emoji-item';
+    div.innerText = em;
+    div.onclick = () => addSticker(em);
+    emojiList.appendChild(div);
+});
+
+function addSticker(emojiChar) {
+    const sticker = document.createElement('div');
+    sticker.className = 'sticker';
+    sticker.innerText = emojiChar;
+    sticker.style.left = '50%';
+    sticker.style.top = '50%';
+    sticker.style.transform = 'translate(-50%, -50%) scale(1) rotate(0deg)';
+    
+    sticker.setAttribute('data-x', 0);
+    sticker.setAttribute('data-y', 0);
+    sticker.setAttribute('data-scale', 1);
+    sticker.setAttribute('data-angle', 0);
+
+    let lastTap = 0;
+    sticker.addEventListener('touchstart', (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 500 && tapLength > 0) {
+            sticker.remove();
+            e.preventDefault();
+        }
+        lastTap = currentTime;
+    });
+    sticker.addEventListener('dblclick', () => sticker.remove());
+
+    stickerContainer.appendChild(sticker);
+    closeAllDrawers();
+    showToast("Double tap sticker to remove", 2000);
+}
+
+try {
+    interact('.sticker')
+        .draggable({
+            inertia: true,
+            modifiers: [ interact.modifiers.restrictRect({ restriction: 'parent', endOnly: true }) ],
+            listeners: { move: dragMoveListener }
+        })
+        .gesturable({ listeners: { move: gestureMoveListener } });
+} catch(e) { console.warn("Interact.js issue", e); }
+
+function dragMoveListener(event) {
+    const target = event.target;
+    const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+    const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+    const scale = target.getAttribute('data-scale') || 1;
+    const angle = target.getAttribute('data-angle') || 0;
+
+    target.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale}) rotate(${angle}deg)`;
+    target.setAttribute('data-x', x);
+    target.setAttribute('data-y', y);
+}
+
+function gestureMoveListener(event) {
+    const target = event.target;
+    let scale = parseFloat(target.getAttribute('data-scale')) || 1;
+    let angle = parseFloat(target.getAttribute('data-angle')) || 0;
+
+    scale += event.ds;
+    angle += event.da;
+
+    const x = target.getAttribute('data-x') || 0;
+    const y = target.getAttribute('data-y') || 0;
+
+    target.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale}) rotate(${angle}deg)`;
+    target.setAttribute('data-scale', scale);
+    target.setAttribute('data-angle', angle);
+}
+
+// --- Capture & Record Logic ---
+let mediaRecorder;
+let recordedChunks = [];
+
+function drawFrameToRecordCanvas() {
+    recCtx.filter = imageFilters[state.currentImageFilter];
+    recCtx.save();
+    if (state.facingMode === 'user') {
+        recCtx.translate(recordCanvas.width, 0);
+        recCtx.scale(-1, 1);
+    }
+    if (state.zoom !== 1) {
+        recCtx.translate(recordCanvas.width/2, recordCanvas.height/2);
+        recCtx.scale(state.zoom, state.zoom);
+        recCtx.translate(-recordCanvas.width/2, -recordCanvas.height/2);
+    }
+    
+    recCtx.drawImage(video, 0, 0, recordCanvas.width, recordCanvas.height);
+    recCtx.restore();
+    
+    recCtx.filter = 'none';
+    recCtx.drawImage(overlayCanvas, 0, 0);
+
+    const stickers = document.querySelectorAll('.sticker');
+    stickers.forEach(st => {
+        const rect = st.getBoundingClientRect();
+        const style = window.getComputedStyle(st);
+        const transform = new DOMMatrixReadOnly(style.transform);
+        
+        recCtx.save();
+        recCtx.translate(rect.left + rect.width/2, rect.top + rect.height/2);
+        recCtx.rotate(Math.atan2(transform.b, transform.a));
+        const scaleX = Math.sqrt(transform.a*transform.a + transform.b*transform.b);
+        recCtx.scale(scaleX, scaleX);
+        recCtx.font = `${parseFloat(style.fontSize)}px Arial`;
+        recCtx.textAlign = 'center';
+        recCtx.textBaseline = 'middle';
+        recCtx.fillText(st.innerText, 0, 0);
+        recCtx.restore();
+    });
+}
+
+function takePhoto() {
+    playSound('shutter');
+    
+    flashOverlay.classList.remove('flash-anim');
+    void flashOverlay.offsetWidth; 
+    flashOverlay.classList.add('flash-anim');
+
+    drawFrameToRecordCanvas();
+    
+    const dataUrl = recordCanvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `CameraMan_${Date.now()}.png`;
+    link.href = dataUrl;
+    link.click();
+    
+    showToast("Photo saved successfully! 📸");
+}
+
+function startRecording() {
+    playSound('beep');
+    state.isRecording = true;
+    captureBtn.classList.add('recording');
+    recordedChunks = [];
+    
+    const canvasStream = recordCanvas.captureStream(30);
+    
+    if(state.stream.getAudioTracks().length > 0) {
+        canvasStream.addTrack(state.stream.getAudioTracks()[0]);
+    }
+
+    let options = { mimeType: 'video/webm; codecs=vp9' };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm; codecs=vp8' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            options = { mimeType: 'video/webm' };
+        }
+    }
+
+    mediaRecorder = new MediaRecorder(canvasStream, options);
+    mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+    mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: options.mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `CameraMan_Video_${Date.now()}.webm`;
+        link.href = url;
+        link.click();
+        showToast("Video saved successfully! 🎥");
+    };
+    mediaRecorder.start();
+    
+    setTimeout(() => {
+        if (state.isRecording) stopRecording();
+    }, 15000); // Extended max record time slightly for pro feel
+}
+
+function stopRecording() {
+    playSound('beep');
+    state.isRecording = false;
+    captureBtn.classList.remove('recording');
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+}
+
+async function runTimerAndCapture(action) {
+    if (state.timerValue === 0) {
+        action();
+        return;
+    }
+    
+    timerDisplay.style.display = 'block';
+    for (let i = state.timerValue; i > 0; i--) {
+        timerDisplay.innerText = i;
+        playSound('beep');
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    timerDisplay.style.display = 'none';
+    action();
+}
+
+let captureTimeout;
+let isHolding = false;
+
+captureBtn.addEventListener('mousedown', startPress);
+captureBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
+captureBtn.addEventListener('mouseup', endPress);
+captureBtn.addEventListener('mouseleave', endPress);
+captureBtn.addEventListener('touchend', (e) => { e.preventDefault(); endPress(); });
+
+function startPress() {
+    isHolding = false;
+    captureTimeout = setTimeout(() => {
+        isHolding = true;
+        runTimerAndCapture(startRecording);
+    }, 500); 
+}
+
+function endPress() {
+    clearTimeout(captureTimeout);
+    if (!isHolding && !state.isRecording) {
+        runTimerAndCapture(takePhoto);
+    } else if (state.isRecording) {
+        stopRecording();
+    }
+}
+
+// --- UI Interactions ---
+document.getElementById('btn-flip').addEventListener('click', async () => {
+    state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
+    video.style.transform = state.facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
+    await startCamera();
+});
+
+document.getElementById('btn-fullscreen').addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            showToast(`Fullscreen error: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+});
+
+document.getElementById('btn-grid').addEventListener('click', (e) => {
+    const grid = document.getElementById('grid-overlay');
+    const isShowing = grid.style.display === 'block';
+    grid.style.display = isShowing ? 'none' : 'block';
+    e.currentTarget.classList.toggle('active', !isShowing);
+});
+
+document.getElementById('btn-timer').addEventListener('click', (e) => {
+    const times = [0, 3, 5];
+    const currentIndex = times.indexOf(state.timerValue);
+    state.timerValue = times[(currentIndex + 1) % times.length];
+    
+    e.currentTarget.classList.toggle('active', state.timerValue > 0);
+    e.currentTarget.innerHTML = state.timerValue > 0 ? `<span style="font-weight:bold">${state.timerValue}s</span>` : `<i class="fas fa-clock"></i>`;
+});
+
+function closeAllDrawers() {
+    document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
+}
+
+document.querySelectorAll('.close-drawer').forEach(btn => {
+    btn.addEventListener('click', closeAllDrawers);
+});
+
+function toggleDrawer(id) {
+    const drawer = document.getElementById(id);
+    const isOpen = drawer.classList.contains('open');
+    closeAllDrawers();
+    if (!isOpen) drawer.classList.add('open');
+}
+
+document.getElementById('btn-face-filters').addEventListener('click', () => {
+    if (state.modelsFailed) {
+        showToast("Face filters unavailable. Check your internet connection.");
+    } else if (!state.modelsLoaded) {
+        showToast("AI Models loading, please wait...");
+    } else {
+        toggleDrawer('drawer-face-filters');
+    }
+});
+
+document.getElementById('btn-settings').addEventListener('click', () => toggleDrawer('drawer-settings'));
+document.getElementById('btn-stickers').addEventListener('click', () => toggleDrawer('drawer-stickers'));
+document.getElementById('btn-image-filters').addEventListener('click', () => toggleDrawer('drawer-image-filters'));
+document.getElementById('btn-gallery').addEventListener('click', () => {
+    showToast("Images are saved directly to your device downloads folder! 📁");
+});
+
+function setupToggle(id, stateKey, callback) {
+    const el = document.getElementById(id);
+    el.addEventListener('click', () => {
+        state[stateKey] = !state[stateKey];
+        el.classList.toggle('on', state[stateKey]);
+        if(callback) callback(state[stateKey]);
+    });
+}
+
+setupToggle('toggle-sound', 'isSoundOn');
+setupToggle('toggle-tracking', 'isTrackingOn', (isOn) => {
+    if (!isOn) ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+});
+setupToggle('toggle-theme', 'isDarkTheme', (isDark) => {
+    document.documentElement.style.setProperty('--bg-glass', isDark ? 'rgba(20, 20, 20, 0.45)' : 'rgba(255, 255, 255, 0.6)');
+    document.documentElement.style.setProperty('--border-glass', isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)');
+    document.body.style.backgroundColor = isDark ? '#050505' : '#e0e5ec';
+    document.body.style.color = isDark ? '#ffffff' : '#333333';
+    
+    // Adjust button colors for light mode dynamically
+    const icons = document.querySelectorAll('.icon-btn:not(.active)');
+    icons.forEach(icon => {
+        icon.style.color = isDark ? '#fff' : '#333';
+        icon.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+    });
+});
+
+// Prevent default pinch zoom on iOS
+document.addEventListener('touchmove', function (event) {
+    if (event.scale !== 1) { event.preventDefault(); }
+}, { passive: false });
+
+// Start App
+window.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
