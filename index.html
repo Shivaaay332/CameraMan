@@ -12,8 +12,6 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3686/3686930.png">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3686/3686930.png">
 
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22CameraMan%20Pro%22%2C%22short_name%22%3A%22CameraMan%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F3686%2F3686930.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
-
     <title>CameraMan Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -50,7 +48,7 @@
             font-family: 'Poppins', sans-serif;
             overflow: hidden;
             color: var(--primary);
-            overscroll-behavior-y: none; /* Prevents pull-to-refresh on mobile */
+            overscroll-behavior-y: none;
         }
 
         /* --- Camera & Canvases --- */
@@ -192,6 +190,55 @@
             gap: 12px;
         }
 
+        /* Tools Bar (Just above Bottom Bar) */
+        #tools-bar {
+            position: absolute;
+            bottom: calc(var(--safe-bottom) + 110px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 400px;
+            z-index: 20;
+            gap: 15px;
+        }
+
+        #zoom-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-glass);
+            padding: 8px 15px;
+            border-radius: 30px;
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border-glass);
+            flex-grow: 1;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255,255,255,0.6);
+            border: 2px solid var(--neon-blue);
+        }
+
         /* Bottom Bar */
         #bottom-bar {
             position: absolute;
@@ -199,11 +246,10 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            justify-content: center;
+            justify-content: space-around;
             align-items: center;
-            gap: 25px;
             z-index: 20;
-            padding: 12px 25px;
+            padding: 10px 20px;
             border-radius: 40px;
             width: 90%;
             max-width: 400px;
@@ -254,20 +300,6 @@
             100% { box-shadow: 0 0 25px var(--neon-pink), 0 0 40px rgba(255, 42, 133, 0.5); }
         }
 
-        /* Side Panels */
-        .side-panel {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 20;
-            padding: 12px;
-            border-radius: 25px;
-        }
-
         /* Drawers */
         .drawer {
             position: absolute;
@@ -314,6 +346,30 @@
             justify-items: center;
         }
 
+        /* In-App Gallery Grid */
+        #gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .gallery-thumb {
+            width: 100%;
+            aspect-ratio: 9/16;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: #222;
+        }
+        
+        .empty-gallery {
+            grid-column: span 3;
+            text-align: center;
+            color: #888;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+
         .emoji-item, .overlay-item {
             font-size: 2.2rem;
             cursor: pointer;
@@ -332,18 +388,12 @@
             transform: scale(0.9);
         }
 
-        .emoji-item:hover, .overlay-item:hover {
-            background: rgba(255,255,255,0.15);
-            border-color: rgba(255,255,255,0.2);
-        }
-
         .overlay-item.active {
             border: 2px solid var(--neon-blue);
             background: rgba(0, 240, 255, 0.1);
             box-shadow: 0 0 20px rgba(0,255,255,0.2);
         }
 
-        /* Image Filters List */
         .filter-item {
             display: flex;
             flex-direction: column;
@@ -369,16 +419,9 @@
 
         .filter-name {
             font-size: 0.75rem;
-            font-weight: 400;
-            text-align: center;
-            letter-spacing: 0.5px;
             color: #ddd;
         }
-
-        .filter-item.active .filter-name {
-            color: var(--neon-yellow);
-            font-weight: 600;
-        }
+        .filter-item.active .filter-name { color: var(--neon-yellow); font-weight: 600; }
 
         /* Settings Toggles */
         .setting-row {
@@ -403,24 +446,16 @@
         .toggle-switch::after {
             content: '';
             position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 24px;
-            height: 24px;
+            top: 3px; left: 3px;
+            width: 24px; height: 24px;
             background-color: white;
             border-radius: 50%;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        .toggle-switch.on {
-            background-color: var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0,255,255,0.3);
-        }
-
-        .toggle-switch.on::after {
-            transform: translateX(24px);
-        }
+        .toggle-switch.on { background-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,255,255,0.3); }
+        .toggle-switch.on::after { transform: translateX(24px); }
 
         /* Flash & Loader */
         #flash-overlay {
@@ -432,9 +467,7 @@
             pointer-events: none;
         }
 
-        .flash-anim {
-            animation: flash-premium 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-        }
+        .flash-anim { animation: flash-premium 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
 
         @keyframes flash-premium {
             0% { opacity: 1; background: #fff; }
@@ -470,9 +503,9 @@
         /* Timer UI */
         #timer-display {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 40%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 10rem;
+            font-size: 8rem;
             font-weight: 800;
             color: white;
             text-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px var(--neon-blue);
@@ -480,49 +513,7 @@
             display: none;
         }
         
-        /* Zoom Slider */
-        #zoom-container {
-            position: absolute;
-            right: 85px;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 220px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            z-index: 20;
-            background: var(--bg-glass);
-            padding: 20px 10px;
-            border-radius: 25px;
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--border-glass);
-        }
-        
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 160px;
-            height: 6px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-            outline: none;
-            transform: rotate(-90deg);
-            margin: 75px 0;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #fff;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(255,255,255,0.6);
-            border: 2px solid var(--neon-blue);
-        }
-
-        /* Toast Notification (Premium Alert Replacement) */
+        /* Toast Notification */
         #toast-container {
             position: absolute;
             top: calc(var(--safe-top) + 70px);
@@ -551,22 +542,16 @@
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .toast.show { opacity: 1; transform: translateY(0); }
 
         /* Responsive */
         @media (max-width: 600px) {
-            .side-panel { right: 15px; }
-            #bottom-bar { width: 92%; gap: 15px; padding: 12px; bottom: calc(var(--safe-bottom) + 10px); }
+            #bottom-bar { width: 92%; padding: 12px; bottom: calc(var(--safe-bottom) + 10px); }
             #capture-btn { width: 70px; height: 70px; }
             #capture-btn .inner-circle { width: 54px; height: 54px; }
-            #zoom-container { right: 75px; height: 180px; }
-            input[type="range"] { width: 120px; margin: 55px 0; }
+            #tools-bar { width: 92%; bottom: calc(var(--safe-bottom) + 95px); }
         }
         
-        /* Hidden canvas for recording */
         #record-canvas { display: none; }
     </style>
 </head>
@@ -594,15 +579,16 @@
         </div>
     </div>
 
-    <div id="zoom-container" class="glass">
-        <i class="fas fa-plus" style="font-size: 12px; color: #ddd;"></i>
-        <input type="range" id="zoom-slider" min="1" max="3" step="0.1" value="1">
-        <i class="fas fa-minus" style="font-size: 12px; color: #ddd;"></i>
-    </div>
+    <div id="tools-bar">
+        <div class="icon-btn" id="btn-face-filters" title="Face Filters"><i class="fas fa-masks-theater"></i></div>
+        
+        <div id="zoom-container">
+            <i class="fas fa-minus" style="font-size: 12px; color: #ddd;"></i>
+            <input type="range" id="zoom-slider" min="1" max="3" step="0.1" value="1">
+            <i class="fas fa-plus" style="font-size: 12px; color: #ddd;"></i>
+        </div>
 
-    <div class="side-panel glass">
-        <div class="icon-btn" id="btn-image-filters"><i class="fas fa-magic"></i></div>
-        <div class="icon-btn" id="btn-face-filters"><i class="fas fa-masks-theater"></i></div>
+        <div class="icon-btn" id="btn-image-filters" title="Image Filters"><i class="fas fa-magic"></i></div>
     </div>
 
     <div id="bottom-bar" class="glass">
@@ -615,6 +601,16 @@
         
         <div class="icon-btn" id="btn-flip" title="Flip Camera"><i class="fas fa-sync-alt"></i></div>
         <div class="icon-btn" id="btn-fullscreen" title="Fullscreen"><i class="fas fa-expand"></i></div>
+    </div>
+
+    <div class="drawer" id="drawer-gallery">
+        <div class="drawer-header">
+            <h3>My Photos</h3>
+            <div class="icon-btn close-drawer"><i class="fas fa-times"></i></div>
+        </div>
+        <div id="gallery-grid">
+            <div class="empty-gallery">No photos taken yet.<br>Click the capture button!</div>
+        </div>
     </div>
 
     <div class="drawer" id="drawer-settings">
@@ -676,12 +672,6 @@
 </div>
 
 <script>
-/**
- * CameraMan Pro - Enhanced Main Application Logic
- * Original Logic kept 100% intact, upgraded with Toast Notifications and premium UI flows.
- */
-
-// --- State ---
 const state = {
     facingMode: 'user',
     currentImageFilter: 'none',
@@ -697,29 +687,23 @@ const state = {
     stream: null
 };
 
-// --- Custom Toast Notification Function (Replaces ugly Alerts) ---
 function showToast(message, duration = 3000) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerHTML = `<i class="fas fa-info-circle" style="margin-right: 8px; color: var(--neon-blue);"></i> ${message}`;
-    
     container.appendChild(toast);
     
-    // Trigger animation
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            toast.classList.add('show');
-        });
+        requestAnimationFrame(() => toast.classList.add('show'));
     });
 
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 400); // Wait for transition
+        setTimeout(() => toast.remove(), 400); 
     }, duration);
 }
 
-// --- DOM Elements ---
 const video = document.getElementById('video-feed');
 const overlayCanvas = document.getElementById('overlay-canvas');
 const recordCanvas = document.getElementById('record-canvas');
@@ -732,7 +716,6 @@ const captureBtn = document.getElementById('capture-btn');
 const flashOverlay = document.getElementById('flash-overlay');
 const timerDisplay = document.getElementById('timer-display');
 
-// Audio setup
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(type) {
     if (!state.isSoundOn) return;
@@ -756,7 +739,7 @@ function playSound(type) {
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         }
-    } catch(e) { console.warn("Audio error:", e); }
+    } catch(e) {}
 }
 
 function removeLoader() {
@@ -771,14 +754,11 @@ async function init() {
     try {
         loaderText.innerText = "Starting Camera...";
         await startCamera();
-        
         setupCanvases();
         window.addEventListener('resize', setupCanvases);
-        
         removeLoader();
         requestAnimationFrame(processVideoFrame);
         loadFaceModelsInBackground();
-        
     } catch (err) {
         console.error(err);
         loaderText.innerText = "Camera Access Denied";
@@ -790,16 +770,10 @@ async function init() {
 }
 
 async function startCamera() {
-    if (state.stream) {
-        state.stream.getTracks().forEach(track => track.stop());
-    }
+    if (state.stream) state.stream.getTracks().forEach(track => track.stop());
     
     const constraints = {
-        video: {
-            facingMode: state.facingMode,
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        },
+        video: { facingMode: state.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false 
     };
 
@@ -826,40 +800,25 @@ async function startCamera() {
     }
 
     return new Promise((resolve) => {
-        video.onloadedmetadata = () => {
-            video.play();
-            resolve();
-        };
+        video.onloadedmetadata = () => { video.play(); resolve(); };
     });
 }
 
 async function loadFaceModelsInBackground() {
     try {
-        console.log("Loading AI face models asynchronously...");
-        if (typeof faceapi === 'undefined') throw new Error("face-api library not loaded.");
-
+        if (typeof faceapi === 'undefined') throw new Error("face-api not loaded.");
         const MODEL_URL = 'https://cdn.jsdelivr.net/gh/vladmandic/face-api/model/';
-        
         const loadPromise = Promise.all([
             faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
             faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
         ]);
-
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('AI Model loading timed out')), 5000)
-        );
-
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000));
         await Promise.race([loadPromise, timeoutPromise]);
-        
-        console.log("AI models loaded successfully.");
         state.modelsLoaded = true;
         showToast("AI Face Filters are ready! ✨");
     } catch (err) {
-        console.error("Face models failed:", err);
-        state.modelsLoaded = false;
         state.modelsFailed = true;
-        const faceBtn = document.getElementById('btn-face-filters');
-        faceBtn.style.opacity = '0.5';
+        document.getElementById('btn-face-filters').style.opacity = '0.5';
     }
 }
 
@@ -871,10 +830,7 @@ function setupCanvases() {
 }
 
 async function processVideoFrame() {
-    if (video.paused || video.ended) {
-        requestAnimationFrame(processVideoFrame);
-        return;
-    }
+    if (video.paused || video.ended) { requestAnimationFrame(processVideoFrame); return; }
 
     ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
@@ -882,9 +838,7 @@ async function processVideoFrame() {
         try {
             const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
             const detections = await faceapi.detectAllFaces(video, options).withFaceLandmarks();
-            
-            const displaySize = { width: overlayCanvas.width, height: overlayCanvas.height };
-            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+            const resizedDetections = faceapi.resizeResults(detections, { width: overlayCanvas.width, height: overlayCanvas.height });
 
             resizedDetections.forEach(detection => {
                 const landmarks = detection.landmarks;
@@ -899,71 +853,43 @@ async function processVideoFrame() {
                 const angle = Math.atan2(rightEye[3].y - leftEye[0].y, rightEye[3].x - leftEye[0].x);
 
                 ctx.save();
-                
-                if (state.facingMode === 'user') {
-                    ctx.translate(overlayCanvas.width, 0);
-                    ctx.scale(-1, 1);
-                }
+                if (state.facingMode === 'user') { ctx.translate(overlayCanvas.width, 0); ctx.scale(-1, 1); }
 
-                let x = eyeCenterX;
-                let y = eyeCenterY;
-                if (state.facingMode === 'user') {
-                    x = overlayCanvas.width - eyeCenterX;
-                }
+                let x = eyeCenterX, y = eyeCenterY;
+                if (state.facingMode === 'user') x = overlayCanvas.width - eyeCenterX;
 
                 ctx.translate(x, y);
                 ctx.rotate(state.facingMode === 'user' ? -angle : angle);
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
-                if (state.currentFaceOverlay === 'sunglasses') {
-                    ctx.font = `${faceWidth * 0.9}px Arial`;
-                    ctx.fillText('😎', 0, 0);
-                } else if (state.currentFaceOverlay === 'hat') {
-                    ctx.font = `${faceWidth * 1.2}px Arial`;
-                    ctx.fillText('🎩', 0, -faceWidth * 0.8);
-                } else if (state.currentFaceOverlay === 'dog') {
-                    ctx.font = `${faceWidth * 1.4}px Arial`;
-                    ctx.fillText('🐶', 0, -faceWidth * 0.2);
-                } else if (state.currentFaceOverlay === 'crown') {
-                    ctx.font = `${faceWidth * 1}px Arial`;
-                    ctx.fillText('👑', 0, -faceWidth * 0.7);
-                } else if (state.currentFaceOverlay === 'mask') {
-                    ctx.font = `${faceWidth * 0.8}px Arial`;
-                    ctx.fillText('😷', 0, faceWidth * 0.3);
-                } else if (state.currentFaceOverlay === 'mustache') {
+                if (state.currentFaceOverlay === 'sunglasses') { ctx.font = `${faceWidth * 0.9}px Arial`; ctx.fillText('😎', 0, 0); }
+                else if (state.currentFaceOverlay === 'hat') { ctx.font = `${faceWidth * 1.2}px Arial`; ctx.fillText('🎩', 0, -faceWidth * 0.8); }
+                else if (state.currentFaceOverlay === 'dog') { ctx.font = `${faceWidth * 1.4}px Arial`; ctx.fillText('🐶', 0, -faceWidth * 0.2); }
+                else if (state.currentFaceOverlay === 'crown') { ctx.font = `${faceWidth * 1}px Arial`; ctx.fillText('👑', 0, -faceWidth * 0.7); }
+                else if (state.currentFaceOverlay === 'mask') { ctx.font = `${faceWidth * 0.8}px Arial`; ctx.fillText('😷', 0, faceWidth * 0.3); }
+                else if (state.currentFaceOverlay === 'mustache') {
                     ctx.font = `${faceWidth * 0.6}px Arial`;
                     let nx = nose[3].x, ny = nose[3].y;
-                    if(state.facingMode === 'user') nx = overlayCanvas.width - nx;
-                    ctx.restore(); 
-                    ctx.save();
+                    ctx.restore(); ctx.save();
                     if (state.facingMode === 'user') { ctx.translate(overlayCanvas.width, 0); ctx.scale(-1, 1); nx = nose[3].x; }
                     ctx.translate(nx, ny + faceWidth*0.1);
                     ctx.rotate(state.facingMode === 'user' ? -angle : angle);
                     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                     ctx.fillText('👨', 0, 0);
                 }
-
                 ctx.restore();
             });
-        } catch (e) {
-            console.error("Face detection error:", e);
-        }
+        } catch (e) {}
     }
 
     if (state.isRecording) drawFrameToRecordCanvas();
     requestAnimationFrame(processVideoFrame);
 }
 
-// --- Image Filters ---
 const imageFilters = {
-    'none': 'none',
-    'grayscale': 'grayscale(100%)',
-    'sepia': 'sepia(100%)',
-    'vintage': 'sepia(50%) contrast(120%) brightness(90%)',
-    'neon': 'saturate(200%) hue-rotate(45deg) contrast(150%)',
-    'blur': 'blur(5px)',
-    'bright': 'brightness(130%) contrast(110%)'
+    'none': 'none', 'grayscale': 'grayscale(100%)', 'sepia': 'sepia(100%)',
+    'vintage': 'sepia(50%) contrast(120%) brightness(90%)', 'neon': 'saturate(200%) hue-rotate(45deg) contrast(150%)',
+    'blur': 'blur(5px)', 'bright': 'brightness(130%) contrast(110%)'
 };
 
 function applyImageFilter(filterName) {
@@ -992,7 +918,6 @@ document.querySelectorAll('.overlay-item').forEach(item => {
     });
 });
 
-// --- Stickers UI & Logic ---
 const emojis = ['🌟','❤️','🔥','✨','🎉','😂','🍕','👽','👻','💯','✌️','🚀','🌈','🌸','⚡'];
 const emojiList = document.getElementById('emoji-list');
 emojis.forEach(em => {
@@ -1007,24 +932,16 @@ function addSticker(emojiChar) {
     const sticker = document.createElement('div');
     sticker.className = 'sticker';
     sticker.innerText = emojiChar;
-    sticker.style.left = '50%';
-    sticker.style.top = '50%';
+    sticker.style.left = '50%'; sticker.style.top = '50%';
     sticker.style.transform = 'translate(-50%, -50%) scale(1) rotate(0deg)';
-    
-    sticker.setAttribute('data-x', 0);
-    sticker.setAttribute('data-y', 0);
-    sticker.setAttribute('data-scale', 1);
-    sticker.setAttribute('data-angle', 0);
+    sticker.setAttribute('data-x', 0); sticker.setAttribute('data-y', 0);
+    sticker.setAttribute('data-scale', 1); sticker.setAttribute('data-angle', 0);
 
     let lastTap = 0;
     sticker.addEventListener('touchstart', (e) => {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTap;
-        if (tapLength < 500 && tapLength > 0) {
-            sticker.remove();
-            e.preventDefault();
-        }
-        lastTap = currentTime;
+        const tapLength = new Date().getTime() - lastTap;
+        if (tapLength < 500 && tapLength > 0) { sticker.remove(); e.preventDefault(); }
+        lastTap = new Date().getTime();
     });
     sticker.addEventListener('dblclick', () => sticker.remove());
 
@@ -1041,7 +958,7 @@ try {
             listeners: { move: dragMoveListener }
         })
         .gesturable({ listeners: { move: gestureMoveListener } });
-} catch(e) { console.warn("Interact.js issue", e); }
+} catch(e) {}
 
 function dragMoveListener(event) {
     const target = event.target;
@@ -1049,86 +966,87 @@ function dragMoveListener(event) {
     const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
     const scale = target.getAttribute('data-scale') || 1;
     const angle = target.getAttribute('data-angle') || 0;
-
     target.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale}) rotate(${angle}deg)`;
-    target.setAttribute('data-x', x);
-    target.setAttribute('data-y', y);
+    target.setAttribute('data-x', x); target.setAttribute('data-y', y);
 }
 
 function gestureMoveListener(event) {
     const target = event.target;
     let scale = parseFloat(target.getAttribute('data-scale')) || 1;
     let angle = parseFloat(target.getAttribute('data-angle')) || 0;
-
-    scale += event.ds;
-    angle += event.da;
-
+    scale += event.ds; angle += event.da;
     const x = target.getAttribute('data-x') || 0;
     const y = target.getAttribute('data-y') || 0;
-
     target.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale}) rotate(${angle}deg)`;
-    target.setAttribute('data-scale', scale);
-    target.setAttribute('data-angle', angle);
+    target.setAttribute('data-scale', scale); target.setAttribute('data-angle', angle);
 }
 
-// --- Capture & Record Logic ---
 let mediaRecorder;
 let recordedChunks = [];
+let galleryHasItems = false;
 
 function drawFrameToRecordCanvas() {
     recCtx.filter = imageFilters[state.currentImageFilter];
     recCtx.save();
-    if (state.facingMode === 'user') {
-        recCtx.translate(recordCanvas.width, 0);
-        recCtx.scale(-1, 1);
-    }
+    if (state.facingMode === 'user') { recCtx.translate(recordCanvas.width, 0); recCtx.scale(-1, 1); }
     if (state.zoom !== 1) {
         recCtx.translate(recordCanvas.width/2, recordCanvas.height/2);
         recCtx.scale(state.zoom, state.zoom);
         recCtx.translate(-recordCanvas.width/2, -recordCanvas.height/2);
     }
-    
     recCtx.drawImage(video, 0, 0, recordCanvas.width, recordCanvas.height);
     recCtx.restore();
     
     recCtx.filter = 'none';
     recCtx.drawImage(overlayCanvas, 0, 0);
 
-    const stickers = document.querySelectorAll('.sticker');
-    stickers.forEach(st => {
+    document.querySelectorAll('.sticker').forEach(st => {
         const rect = st.getBoundingClientRect();
         const style = window.getComputedStyle(st);
         const transform = new DOMMatrixReadOnly(style.transform);
-        
         recCtx.save();
         recCtx.translate(rect.left + rect.width/2, rect.top + rect.height/2);
         recCtx.rotate(Math.atan2(transform.b, transform.a));
         const scaleX = Math.sqrt(transform.a*transform.a + transform.b*transform.b);
         recCtx.scale(scaleX, scaleX);
         recCtx.font = `${parseFloat(style.fontSize)}px Arial`;
-        recCtx.textAlign = 'center';
-        recCtx.textBaseline = 'middle';
+        recCtx.textAlign = 'center'; recCtx.textBaseline = 'middle';
         recCtx.fillText(st.innerText, 0, 0);
         recCtx.restore();
     });
 }
 
+function addToInAppGallery(dataUrl) {
+    const galleryGrid = document.getElementById('gallery-grid');
+    if (!galleryHasItems) {
+        galleryGrid.innerHTML = ''; // Remove "Empty" text
+        galleryHasItems = true;
+    }
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.className = 'gallery-thumb';
+    galleryGrid.prepend(img); // Add newest to top
+}
+
 function takePhoto() {
     playSound('shutter');
-    
     flashOverlay.classList.remove('flash-anim');
     void flashOverlay.offsetWidth; 
     flashOverlay.classList.add('flash-anim');
 
     drawFrameToRecordCanvas();
-    
     const dataUrl = recordCanvas.toDataURL('image/png');
+    
+    // Download to device
     const link = document.createElement('a');
     link.download = `CameraMan_${Date.now()}.png`;
     link.href = dataUrl;
     link.click();
     
-    showToast("Photo saved successfully! 📸");
+    // Add to app gallery
+    addToInAppGallery(dataUrl);
+    
+    showToast("Photo saved to device & gallery! 📸");
 }
 
 function startRecording() {
@@ -1138,23 +1056,16 @@ function startRecording() {
     recordedChunks = [];
     
     const canvasStream = recordCanvas.captureStream(30);
-    
-    if(state.stream.getAudioTracks().length > 0) {
-        canvasStream.addTrack(state.stream.getAudioTracks()[0]);
-    }
+    if(state.stream.getAudioTracks().length > 0) canvasStream.addTrack(state.stream.getAudioTracks()[0]);
 
     let options = { mimeType: 'video/webm; codecs=vp9' };
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
         options = { mimeType: 'video/webm; codecs=vp8' };
-        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            options = { mimeType: 'video/webm' };
-        }
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
     }
 
     mediaRecorder = new MediaRecorder(canvasStream, options);
-    mediaRecorder.ondataavailable = e => {
-        if (e.data.size > 0) recordedChunks.push(e.data);
-    };
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
     mediaRecorder.onstop = () => {
         const blob = new Blob(recordedChunks, { type: options.mimeType });
         const url = URL.createObjectURL(blob);
@@ -1165,40 +1076,28 @@ function startRecording() {
         showToast("Video saved successfully! 🎥");
     };
     mediaRecorder.start();
-    
-    setTimeout(() => {
-        if (state.isRecording) stopRecording();
-    }, 15000); // Extended max record time slightly for pro feel
+    setTimeout(() => { if (state.isRecording) stopRecording(); }, 15000); 
 }
 
 function stopRecording() {
     playSound('beep');
     state.isRecording = false;
     captureBtn.classList.remove('recording');
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-    }
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
 }
 
 async function runTimerAndCapture(action) {
-    if (state.timerValue === 0) {
-        action();
-        return;
-    }
-    
+    if (state.timerValue === 0) { action(); return; }
     timerDisplay.style.display = 'block';
     for (let i = state.timerValue; i > 0; i--) {
-        timerDisplay.innerText = i;
-        playSound('beep');
+        timerDisplay.innerText = i; playSound('beep');
         await new Promise(r => setTimeout(r, 1000));
     }
     timerDisplay.style.display = 'none';
     action();
 }
 
-let captureTimeout;
-let isHolding = false;
-
+let captureTimeout, isHolding = false;
 captureBtn.addEventListener('mousedown', startPress);
 captureBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startPress(); });
 captureBtn.addEventListener('mouseup', endPress);
@@ -1207,22 +1106,14 @@ captureBtn.addEventListener('touchend', (e) => { e.preventDefault(); endPress();
 
 function startPress() {
     isHolding = false;
-    captureTimeout = setTimeout(() => {
-        isHolding = true;
-        runTimerAndCapture(startRecording);
-    }, 500); 
+    captureTimeout = setTimeout(() => { isHolding = true; runTimerAndCapture(startRecording); }, 500); 
 }
-
 function endPress() {
     clearTimeout(captureTimeout);
-    if (!isHolding && !state.isRecording) {
-        runTimerAndCapture(takePhoto);
-    } else if (state.isRecording) {
-        stopRecording();
-    }
+    if (!isHolding && !state.isRecording) runTimerAndCapture(takePhoto);
+    else if (state.isRecording) stopRecording();
 }
 
-// --- UI Interactions ---
 document.getElementById('btn-flip').addEventListener('click', async () => {
     state.facingMode = state.facingMode === 'user' ? 'environment' : 'user';
     video.style.transform = state.facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
@@ -1230,13 +1121,8 @@ document.getElementById('btn-flip').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            showToast(`Fullscreen error: ${err.message}`);
-        });
-    } else {
-        document.exitFullscreen();
-    }
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => showToast(`Fullscreen error`));
+    else document.exitFullscreen();
 });
 
 document.getElementById('btn-grid').addEventListener('click', (e) => {
@@ -1248,21 +1134,13 @@ document.getElementById('btn-grid').addEventListener('click', (e) => {
 
 document.getElementById('btn-timer').addEventListener('click', (e) => {
     const times = [0, 3, 5];
-    const currentIndex = times.indexOf(state.timerValue);
-    state.timerValue = times[(currentIndex + 1) % times.length];
-    
+    state.timerValue = times[(times.indexOf(state.timerValue) + 1) % times.length];
     e.currentTarget.classList.toggle('active', state.timerValue > 0);
     e.currentTarget.innerHTML = state.timerValue > 0 ? `<span style="font-weight:bold">${state.timerValue}s</span>` : `<i class="fas fa-clock"></i>`;
 });
 
-function closeAllDrawers() {
-    document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open'));
-}
-
-document.querySelectorAll('.close-drawer').forEach(btn => {
-    btn.addEventListener('click', closeAllDrawers);
-});
-
+function closeAllDrawers() { document.querySelectorAll('.drawer').forEach(d => d.classList.remove('open')); }
+document.querySelectorAll('.close-drawer').forEach(btn => btn.addEventListener('click', closeAllDrawers));
 function toggleDrawer(id) {
     const drawer = document.getElementById(id);
     const isOpen = drawer.classList.contains('open');
@@ -1271,21 +1149,15 @@ function toggleDrawer(id) {
 }
 
 document.getElementById('btn-face-filters').addEventListener('click', () => {
-    if (state.modelsFailed) {
-        showToast("Face filters unavailable. Check your internet connection.");
-    } else if (!state.modelsLoaded) {
-        showToast("AI Models loading, please wait...");
-    } else {
-        toggleDrawer('drawer-face-filters');
-    }
+    if (state.modelsFailed) showToast("Face filters unavailable. Check internet.");
+    else if (!state.modelsLoaded) showToast("AI Models loading, please wait...");
+    else toggleDrawer('drawer-face-filters');
 });
 
 document.getElementById('btn-settings').addEventListener('click', () => toggleDrawer('drawer-settings'));
 document.getElementById('btn-stickers').addEventListener('click', () => toggleDrawer('drawer-stickers'));
 document.getElementById('btn-image-filters').addEventListener('click', () => toggleDrawer('drawer-image-filters'));
-document.getElementById('btn-gallery').addEventListener('click', () => {
-    showToast("Images are saved directly to your device downloads folder! 📁");
-});
+document.getElementById('btn-gallery').addEventListener('click', () => toggleDrawer('drawer-gallery'));
 
 function setupToggle(id, stateKey, callback) {
     const el = document.getElementById(id);
@@ -1297,29 +1169,19 @@ function setupToggle(id, stateKey, callback) {
 }
 
 setupToggle('toggle-sound', 'isSoundOn');
-setupToggle('toggle-tracking', 'isTrackingOn', (isOn) => {
-    if (!isOn) ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-});
+setupToggle('toggle-tracking', 'isTrackingOn', (isOn) => { if (!isOn) ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height); });
 setupToggle('toggle-theme', 'isDarkTheme', (isDark) => {
     document.documentElement.style.setProperty('--bg-glass', isDark ? 'rgba(20, 20, 20, 0.45)' : 'rgba(255, 255, 255, 0.6)');
     document.documentElement.style.setProperty('--border-glass', isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)');
     document.body.style.backgroundColor = isDark ? '#050505' : '#e0e5ec';
     document.body.style.color = isDark ? '#ffffff' : '#333333';
-    
-    // Adjust button colors for light mode dynamically
-    const icons = document.querySelectorAll('.icon-btn:not(.active)');
-    icons.forEach(icon => {
+    document.querySelectorAll('.icon-btn:not(.active)').forEach(icon => {
         icon.style.color = isDark ? '#fff' : '#333';
         icon.style.background = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
     });
 });
 
-// Prevent default pinch zoom on iOS
-document.addEventListener('touchmove', function (event) {
-    if (event.scale !== 1) { event.preventDefault(); }
-}, { passive: false });
-
-// Start App
+document.addEventListener('touchmove', function (event) { if (event.scale !== 1) { event.preventDefault(); } }, { passive: false });
 window.addEventListener('DOMContentLoaded', init);
 
 </script>
